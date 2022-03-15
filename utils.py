@@ -1,4 +1,4 @@
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
+from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize, VecMonitor
 
 
 def vectorize_env(env, n_envs=4, norm_rew=True, seed=42):
@@ -16,4 +16,5 @@ def vectorize_env(env, n_envs=4, norm_rew=True, seed=42):
         vec_env = SubprocVecEnv(env_fns)
 
     vec_normed = VecNormalize(vec_env, norm_obs=True, norm_reward=norm_rew)
-    return vec_normed
+    vec_final = VecMonitor(vec_normed)
+    return vec_final
