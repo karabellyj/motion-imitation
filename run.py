@@ -1,14 +1,15 @@
 # add current working directory to the system path
+import argparse
 import sys
 from os import getcwd
-import argparse
 from pathlib import Path
 
-from stable_baselines3.common.callbacks import CheckpointCallback
 import torch.nn as nn
+from stable_baselines3.common.callbacks import CheckpointCallback
 
 from config import Config
 from schedules import LinearDecay, ExponentialSchedule
+from utils import vectorize_env
 
 sys.path.append(getcwd())
 
@@ -18,6 +19,7 @@ from stable_baselines3 import PPO
 
 def train(cfg: Config) -> None:
     env = dm2gym.make(domain_name='humanoid_CMU', task_name='humanoid_tracking')
+    env = vectorize_env(env, norm_rew=True, n_envs=cfg.n_envs)
 
     save_path = Path().cwd() / cfg.save_path
     training_timesteps = int(cfg.n_samples_m * 1e6)
@@ -26,8 +28,8 @@ def train(cfg: Config) -> None:
     clip_schedule = ExponentialSchedule(cfg.clip_start, cfg.clip_end, cfg.clip_exp_slope).value
 
     policy_kwargs = {'log_std_init': cfg.init_logstd,
-                     'net_arch': [{'vf': [512, 512], 'pi': [512, 512]}],
-                     'activation_fn': nn.Tanh}
+                     'net_arch': [{'vf': [1024, 512], 'pi': [1024, 512]}],
+                     'activation_fn': nn.ReLU}
     if cfg.checkpoint:
         model = PPO.load(
             cfg.checkpoint,

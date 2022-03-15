@@ -1,6 +1,7 @@
 import sys
 from collections import OrderedDict
 
+import gym
 import numpy as np
 from dm_control import suite
 from dm_env.specs import BoundedArray
@@ -32,7 +33,7 @@ def convert_observation(obs: OrderedDict) -> np.ndarray:
     return np.concatenate(obs)
 
 
-class DmControlEnvWrapper(GymEnv):
+class DmControlEnvWrapper(GymEnv, gym.utils.EzPickle):
 
     def __init__(self, domain_name: str, task_name: str, task_kwargs: dict = None, visualize_reward: bool = False):
         self.dm_env = suite.load(domain_name=domain_name, task_name=task_name, task_kwargs=task_kwargs,
@@ -43,6 +44,8 @@ class DmControlEnvWrapper(GymEnv):
         self.observation_space: Box = dict2space(self.dm_env.observation_spec())
 
         self.np_random, _ = seeding.np_random(None)
+
+        gym.utils.EzPickle.__init__(self, domain_name, task_name)
 
     @property
     def observation(self) -> np.ndarray:

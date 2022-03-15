@@ -6,7 +6,7 @@ class Config:
     save_path: str = './'
     n_steps: int = 2048 * 4
     minibatch_size: int = 512 * 4
-    n_envs: int = 1
+    n_envs: int = 6
     n_samples_m: int = 4
     save_freq: int = 50_000
 
