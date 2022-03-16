@@ -24,12 +24,12 @@ def train(cfg: Config) -> None:
     save_path = Path().cwd() / cfg.save_path
     training_timesteps = int(cfg.n_samples_m * 1e6)
 
-    lr_schedule = LinearDecay(cfg.lr_start, cfg.lr_final, cfg.lr_scale).value
-    clip_schedule = ExponentialSchedule(cfg.clip_start, cfg.clip_end, cfg.clip_exp_slope).value
+    lr_schedule = lambda _: cfg.lr_start
+    clip_schedule = lambda _: cfg.clip_start
 
-    policy_kwargs = {'log_std_init': cfg.init_logstd,
-                     'net_arch': [{'vf': [1024, 512], 'pi': [1024, 512]}],
+    policy_kwargs = {'net_arch': [{'vf': [1024, 512], 'pi': [1024, 512]}],
                      'activation_fn': nn.ReLU}
+
     if cfg.checkpoint:
         model = PPO.load(
             cfg.checkpoint,
@@ -51,17 +51,17 @@ def train(cfg: Config) -> None:
             n_steps=cfg.n_steps // cfg.n_envs,
             batch_size=cfg.minibatch_size,
             learning_rate=lr_schedule,
-            ent_coef=cfg.ent_coef,
             gamma=cfg.gamma,
+            gae_lambda=cfg.gae_lambda,
             n_epochs=cfg.n_epochs,
-            clip_range_vf=clip_schedule, clip_range=clip_schedule,
+            clip_range=clip_schedule,
             policy_kwargs=policy_kwargs,
             tensorboard_log=str(save_path / 'tb_logs')
         )
 
     # Save a checkpoint
     checkpoint_callback = CheckpointCallback(
-        save_freq=cfg.save_freq,
+        save_freq=max(cfg.save_freq // cfg.n_envs, 1),
         save_path=str(save_path / 'models/'),
         name_prefix='rl_model'
     )
