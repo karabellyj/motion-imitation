@@ -15,6 +15,5 @@ def vectorize_env(env, n_envs=4, norm_rew=True, seed=42):
         env_fns = [make_env_fn(seed, rank) for rank in range(n_envs)]
         vec_env = SubprocVecEnv(env_fns)
 
-    vec_normed = VecNormalize(vec_env, norm_obs=True, norm_reward=norm_rew)
-    vec_final = VecMonitor(vec_normed)
+    vec_final = VecMonitor(vec_env)
     return vec_final
